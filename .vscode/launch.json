@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Docker Node.js Launch",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "docker-run: debug",
+      "platform": "node",
+      "dockerServerReadyAction": {
+        "pattern": "Application has started on port {\\d+}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+services:
+  mongodb:
+    image: mongo:6-jammy
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db # 데이터 영속성을 위한 볼륨
+  
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    container_name: redis # 명시적 이름 지정 (권장)
+    volumes:
+      - redis_data:/data   # 데이터 영속성 추가
+  nestjs:
+    container_name: genaigameserver
+    build: 
+      context: .
+      dockerfile: ./DockerFile
+    image: genaigameserver
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongodb:27017/genai #연결 URI추가
+      - REDIS_URI=redis://redis:6379 #연결 URI추가
+    depends_on:
+      - mongodb
+      - redis
+
+volumes:
+  mongodb_data:
+  redis_data:

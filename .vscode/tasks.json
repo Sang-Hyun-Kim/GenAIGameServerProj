@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "docker-run: debug",
+      "type": "shell",
+      "dependsOn" : ["docker-build"],
+      "command": "docker-compose",
+      "args": [
+        "up",
+        "--build"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}
