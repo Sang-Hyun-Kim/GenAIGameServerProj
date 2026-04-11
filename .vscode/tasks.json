@@ -4,17 +4,31 @@
     {
       "label": "docker-run: debug",
       "type": "shell",
-      "dependsOn" : ["docker-build"],
       "command": "docker-compose",
       "args": [
         "up",
         "--build"
       ],
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Application has started on port \\d+"
+        }
+      },
       "group": {
         "kind": "build",
         "isDefault": true
-      },
-      "problemMatcher": []
+      }
     }
   ]
 }
