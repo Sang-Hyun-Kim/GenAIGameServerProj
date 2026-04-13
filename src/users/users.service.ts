@@ -7,12 +7,14 @@ import { User, UserDocument } from '../schemas/users.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { CharactersService } from '../characters/characters.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @Inject(forwardRef(() => JwtService)) private jwtService: JwtService,
+    @Inject(forwardRef(() => CharactersService)) private charactersService: CharactersService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -86,6 +88,9 @@ export class UsersService {
     if (!result) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    return { deleted: true, message: 'User successfully deleted' };
+    // 해당 사용자의 모든 캐릭터 삭제 (연쇄 삭제)
+    await this.charactersService.removeByUserId(id);
+
+    return { deleted: true, message: 'User and associated characters successfully deleted' };
   }
 }
