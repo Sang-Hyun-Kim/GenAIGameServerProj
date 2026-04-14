@@ -21,6 +21,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User not found or token invalid');
     }
     // req.user에 세팅됩니다.
-    return { userId: payload.sub, email: payload.email };
+    return { userId: payload.sub, email: payload.email, isAdmin: user.isAdmin };
   }
 }

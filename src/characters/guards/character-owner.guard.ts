@@ -1,4 +1,11 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Character, CharacterDocument } from '../../schemas/character.schema';
@@ -6,7 +13,8 @@ import { Character, CharacterDocument } from '../../schemas/character.schema';
 @Injectable()
 export class CharacterOwnerGuard implements CanActivate {
   constructor(
-    @InjectModel(Character.name) private characterModel: Model<CharacterDocument>,
+    @InjectModel(Character.name)
+    private characterModel: Model<CharacterDocument>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -14,10 +22,14 @@ export class CharacterOwnerGuard implements CanActivate {
     const userId = request.user?.userId;
     const characterId = request.params.characterId || request.params.id;
 
-    console.log(`[DEBUG] CharacterOwnerGuard -> userId: ${userId}, characterId: ${characterId}`);
+    console.log(
+      `[DEBUG] CharacterOwnerGuard -> userId: ${userId}, characterId: ${characterId}`,
+    );
 
     if (!userId) {
-      throw new ForbiddenException('인증되지 않은 사용자입니다. (req.user.userId is undefined)');
+      throw new ForbiddenException(
+        '인증되지 않은 사용자입니다. (req.user.userId is undefined)',
+      );
     }
 
     if (!characterId) {

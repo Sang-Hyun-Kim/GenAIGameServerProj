@@ -7,7 +7,9 @@ export class CreateItemDto {
   @IsString()
   name!: string;
 
-  @IsEnum([0, 1, 2], { message: 'Type must be 0(Weapon), 1(Armor), or 2(Consumable)' })
+  @IsEnum([0, 1, 2], {
+    message: 'Type must be 0(Weapon), 1(Armor), or 2(Consumable)',
+  })
   type!: number;
 
   @IsNumber()

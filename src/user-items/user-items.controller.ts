@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UserItemsService } from './user-items.service';
 import { BuyItemDto } from './dto/buy-item.dto';
@@ -17,22 +25,34 @@ export class UserItemsController {
   }
 
   @Get(':userItemId')
-  getInventoryItem(@Param('characterId') characterId: string, @Param('userItemId') userItemId: string) {
+  getInventoryItem(
+    @Param('characterId') characterId: string,
+    @Param('userItemId') userItemId: string,
+  ) {
     return this.userItemsService.getInventoryItem(characterId, userItemId);
   }
 
   @Post('buy')
-  buyItem(@Param('characterId') characterId: string, @Body() buyItemDto: BuyItemDto) {
+  buyItem(
+    @Param('characterId') characterId: string,
+    @Body() buyItemDto: BuyItemDto,
+  ) {
     return this.userItemsService.buyItem(characterId, buyItemDto);
   }
 
   @Post('sell')
-  sellItem(@Param('characterId') characterId: string, @Body() sellItemDto: SellItemDto) {
+  sellItem(
+    @Param('characterId') characterId: string,
+    @Body() sellItemDto: SellItemDto,
+  ) {
     return this.userItemsService.sellItem(characterId, sellItemDto);
   }
 
   @Post('use')
-  useItem(@Param('characterId') characterId: string, @Body() useItemDto: UseItemDto) {
+  useItem(
+    @Param('characterId') characterId: string,
+    @Body() useItemDto: UseItemDto,
+  ) {
     return this.userItemsService.useItem(characterId, useItemDto);
   }
 }

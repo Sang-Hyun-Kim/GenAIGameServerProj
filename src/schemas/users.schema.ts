@@ -28,6 +28,9 @@ export class User {
 
   @Prop({ required: true, select: false })
   password!: string;
+
+  @Prop({ default: false })
+  isAdmin!: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
@@ -72,7 +75,11 @@ export const UserQueries = {
   },
 
   // 6. 특정 사용자 정보 수정
-  update: (model: Model<UserDocument>, id: string, updateData: Partial<User>) => {
+  update: (
+    model: Model<UserDocument>,
+    id: string,
+    updateData: Partial<User>,
+  ) => {
     return model.findByIdAndUpdate(id, updateData, { new: true });
   },
 
