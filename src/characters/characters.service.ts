@@ -1,7 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Character, CharacterDocument } from '../schemas/character.schema';
+import { UserItem, UserItemDocument } from '../schemas/user-item.schema';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
 
@@ -11,6 +12,7 @@ export class CharactersService {
 
   constructor(
     @InjectModel(Character.name) private characterModel: Model<CharacterDocument>,
+    @InjectModel(UserItem.name) private userItemModel: Model<UserItemDocument>,
   ) {}
 
   async create(userId: string, createCharacterDto: CreateCharacterDto): Promise<Character> {
@@ -67,12 +69,29 @@ export class CharactersService {
   async remove(userId: string, characterId: string): Promise<{ message: string }> {
     // findOne을 호출하여 존재 여부 및 소유권을 확인
     await this.findOne(userId, characterId);
-    
+
+    // 연쇄 삭제: 캐릭터가 보유한 모든 아이템 삭제
+    // 문자열인 characterId를 ObjectId로 명시적 변환하여 Mongoose deleteMany 쿼리 매칭 보장
+    await this.userItemModel.deleteMany({ characterId: new Types.ObjectId(characterId) }).exec();
+
+    // 캐릭터 삭제
     await this.characterModel.deleteOne({ _id: characterId, userId }).exec();
-    return { message: '캐릭터가 성공적으로 삭제되었습니다.' };
+    
+    return { message: '캐릭터 및 보유 아이템이 성공적으로 삭제되었습니다.' };
   }
 
   async removeByUserId(userId: string): Promise<void> {
-    await this.characterModel.deleteMany({ userId }).exec();
+    // 삭제할 유저의 캐릭터 목록 조회
+    const characters = await this.characterModel.find({ userId: new Types.ObjectId(userId) }).exec();
+    
+    if (characters.length > 0) {
+      const characterIds = characters.map(c => c._id);
+      
+      // 연쇄 삭제: 모든 캐릭터들이 보유한 아이템 일괄 삭제
+      await this.userItemModel.deleteMany({ characterId: { $in: characterIds } }).exec();
+      
+      // 모든 캐릭터 삭제 (명시적 형변환)
+      await this.characterModel.deleteMany({ userId: new Types.ObjectId(userId) }).exec();
+    }
   }
 }

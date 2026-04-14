@@ -1,6 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Character, CharacterDocument } from '../../schemas/character.schema';
 
 @Injectable()
@@ -23,6 +23,10 @@ export class CharacterOwnerGuard implements CanActivate {
     if (!characterId) {
       // characterId가 필요한 라우트가 아니라면 통과 (예: POST /api/characters)
       return true;
+    }
+
+    if (!Types.ObjectId.isValid(characterId)) {
+      throw new BadRequestException('유효하지 않은 캐릭터 ID 형식입니다.');
     }
 
     const character = await this.characterModel.findById(characterId).exec();
