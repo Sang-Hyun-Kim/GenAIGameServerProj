@@ -57,6 +57,15 @@ export class UsersService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    // 2.5 계정 정지 여부 확인
+    if (user.status === 'BANNED') {
+      throw new UnauthorizedException('This account has been banned.');
+    }
+
+    // 2.6 최근 접속일 갱신
+    user.lastLoginAt = new Date();
+    await user.save();
+
     // 3. JWT 페이로드 생성 및 토큰 발급
     const payload = {
       email: user.email,

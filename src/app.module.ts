@@ -9,6 +9,7 @@ import { CharactersModule } from './characters/characters.module';
 import { ItemsModule } from './items/items.module';
 import { UserItemsModule } from './user-items/user-items.module';
 import { NoticesModule } from './notices/notices.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { NoticesModule } from './notices/notices.module';
     ItemsModule,
     UserItemsModule,
     NoticesModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

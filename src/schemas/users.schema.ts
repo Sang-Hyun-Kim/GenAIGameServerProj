@@ -31,6 +31,12 @@ export class User {
 
   @Prop({ default: false })
   isAdmin!: boolean;
+
+  @Prop({ required: true, enum: ['ACTIVE', 'BANNED'], default: 'ACTIVE' })
+  status!: string;
+
+  @Prop({ type: Date, default: Date.now })
+  lastLoginAt!: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
