@@ -9,6 +9,9 @@ export class Character {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId!: Types.ObjectId;
 
+  @Prop({ required: true, maxlength: 20 })
+  name!: string;
+
   @Prop({ required: true, enum: [0, 1, 2] })
   race!: number; // 0 = 용족, 1 = 엘프, 2 = 인간족
 

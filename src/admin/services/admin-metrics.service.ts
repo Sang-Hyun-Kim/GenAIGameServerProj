@@ -42,7 +42,7 @@ export class AdminMetricsService {
       this.characterModel.aggregate([
         { $group: { _id: null, totalGold: { $sum: '$gold' }, count: { $sum: 1 } } }
       ]),
-      this.characterModel.find().sort({ gold: -1 }).limit(10).select('userId race level gold').lean(),
+      this.characterModel.find().sort({ gold: -1 }).limit(10).select('userId name race level gold').lean(),
       this.userItemModel.aggregate([
         { $group: { _id: '$itemId', totalQuantity: { $sum: '$quantity' } } },
         { $sort: { totalQuantity: -1 } },

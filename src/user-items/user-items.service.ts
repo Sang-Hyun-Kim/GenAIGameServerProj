@@ -12,6 +12,7 @@ import { Item, ItemDocument } from '../schemas/item.schema';
 import { BuyItemDto } from './dto/buy-item.dto';
 import { SellItemDto } from './dto/sell-item.dto';
 import { UseItemDto } from './dto/use-item.dto';
+import { LeaderboardsService } from '../leaderboards/leaderboards.service';
 
 @Injectable()
 export class UserItemsService {
@@ -20,6 +21,7 @@ export class UserItemsService {
     @InjectModel(Character.name)
     private characterModel: Model<CharacterDocument>,
     @InjectModel(Item.name) private itemModel: Model<ItemDocument>,
+    private readonly leaderboardsService: LeaderboardsService,
   ) {}
 
   async getInventory(characterId: string): Promise<UserItem[]> {
@@ -69,6 +71,9 @@ export class UserItemsService {
     // 골드 차감
     character.gold -= totalPrice;
     await character.save();
+    
+    // [Redis 실시간 랭킹 트리거] 골드 변동 알림
+    await this.leaderboardsService.syncGold(character);
 
     // 장비(type: 0, 1)는 보통 중첩되지 않고, 소모품(type: 2)은 중첩된다고 가정합니다.
     if (itemMaster.type === 2) {
@@ -137,6 +142,9 @@ export class UserItemsService {
     character.gold += sellPrice;
     await character.save();
 
+    // [Redis 실시간 랭킹 트리거] 골드 변동 알림
+    await this.leaderboardsService.syncGold(character);
+
     // 아이템 수량 감소 또는 삭제
     if (userItem.quantity === quantity) {
       await this.userItemModel.deleteOne({ _id: userItem._id });
@@ -186,6 +194,9 @@ export class UserItemsService {
 
       await character.save();
 
+      // 스탯 변동(현재는 HP/MP지만 전투력이 변한다면 필요)을 위해 동기화
+      await this.leaderboardsService.syncCombatPower(character);
+
       if (userItem.quantity > 1) {
         userItem.quantity -= 1;
         await userItem.save();
@@ -220,6 +231,10 @@ export class UserItemsService {
       }
 
       await character.save();
+
+      // [Redis 실시간 랭킹 트리거] 장착으로 인한 전투력(공/방) 변동 알림
+      await this.leaderboardsService.syncCombatPower(character);
+
       return {
         message: `아이템 장착 ${userItem.isEquipped ? '성공' : '해제'}`,
         character,

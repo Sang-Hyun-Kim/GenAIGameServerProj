@@ -7,6 +7,7 @@ import { Character, CharacterDocument } from '../../schemas/character.schema';
 import { GrantRewardDto } from '../dto/grant-reward.dto';
 import { RevokeAssetDto } from '../dto/revoke-asset.dto';
 import { BatchUpdateItemDto } from '../dto/batch-update-item.dto';
+import { LeaderboardsService } from '../../leaderboards/leaderboards.service';
 
 @Injectable()
 export class AdminItemsService {
@@ -14,6 +15,7 @@ export class AdminItemsService {
     @InjectModel(Item.name) private itemModel: Model<ItemDocument>,
     @InjectModel(UserItem.name) private userItemModel: Model<UserItemDocument>,
     @InjectModel(Character.name) private characterModel: Model<CharacterDocument>,
+    private readonly leaderboardsService: LeaderboardsService,
   ) {}
 
   async grantReward(characterId: string, dto: GrantRewardDto) {
@@ -26,9 +28,12 @@ export class AdminItemsService {
       throw new NotFoundException('Character not found');
     }
 
+    let needsSync = false;
+
     if (dto.gold) {
       character.gold += dto.gold;
       await character.save();
+      needsSync = true;
     }
 
     if (dto.itemId) {
@@ -70,6 +75,11 @@ export class AdminItemsService {
       }
     }
 
+    // [Redis 실시간 랭킹 트리거] 골드 변동이 있었다면 랭킹 업데이트
+    if (needsSync) {
+      await this.leaderboardsService.syncAll(character);
+    }
+
     return { message: 'Reward granted successfully', characterId };
   }
 
@@ -83,9 +93,12 @@ export class AdminItemsService {
       throw new NotFoundException('Character not found');
     }
 
+    let needsSync = false;
+
     if (dto.gold) {
       character.gold = Math.max(0, character.gold - dto.gold);
       await character.save();
+      needsSync = true;
     }
 
     if (dto.userItemId) {
@@ -116,6 +129,7 @@ export class AdminItemsService {
         if (character.defence_item4_id === userItem.itemId) character.defence_item4_id = null;
 
         await character.save();
+        needsSync = true; // 스탯 변동 발생
       }
 
       const removeQty = dto.quantity || userItem.quantity;
@@ -127,6 +141,11 @@ export class AdminItemsService {
         userItem.isEquipped = false; // Force unequip on revoke
         await userItem.save();
       }
+    }
+
+    // [Redis 실시간 랭킹 트리거] 골드나 스탯(장착해제) 변동이 있었다면 랭킹 업데이트
+    if (needsSync) {
+      await this.leaderboardsService.syncAll(character);
     }
 
     return { message: 'Asset revoked successfully', characterId };

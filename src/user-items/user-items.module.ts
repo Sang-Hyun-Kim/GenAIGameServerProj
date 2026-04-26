@@ -5,16 +5,18 @@ import { UserItemsController } from './user-items.controller';
 import { UserItem, UserItemSchema } from '../schemas/user-item.schema';
 import { CharactersModule } from '../characters/characters.module';
 import { ItemsModule } from '../items/items.module';
-import { Item, ItemSchema } from '../schemas/item.schema'; // Model inject를 위해 스키마 임포트
+import { Item, ItemSchema } from '../schemas/item.schema';
+import { LeaderboardsModule } from '../leaderboards/leaderboards.module'; // 실시간 랭킹 연동
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: UserItem.name, schema: UserItemSchema },
-      { name: Item.name, schema: ItemSchema }, // Service에서 Item 모델을 사용하므로 등록
+      { name: Item.name, schema: ItemSchema },
     ]),
-    CharactersModule, // CharacterOwnerGuard 및 Character 모델 사용
-    ItemsModule, // Items 모듈 기능이 필요할 경우
+    CharactersModule,
+    ItemsModule,
+    LeaderboardsModule, // 랭킹 업데이트 트리거용 주입
   ],
   controllers: [UserItemsController],
   providers: [UserItemsService],

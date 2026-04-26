@@ -9,6 +9,7 @@ import { Character, CharacterDocument } from '../schemas/character.schema';
 import { UserItem, UserItemDocument } from '../schemas/user-item.schema';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
+import { LeaderboardsService } from '../leaderboards/leaderboards.service';
 
 @Injectable()
 export class CharactersService {
@@ -18,6 +19,7 @@ export class CharactersService {
     @InjectModel(Character.name)
     private characterModel: Model<CharacterDocument>,
     @InjectModel(UserItem.name) private userItemModel: Model<UserItemDocument>,
+    private readonly leaderboardsService: LeaderboardsService,
   ) {}
 
   async create(
@@ -45,7 +47,12 @@ export class CharactersService {
       ...createCharacterDto,
     });
 
-    return newCharacter.save();
+    const savedCharacter = await newCharacter.save();
+    
+    // [Redis 실시간 랭킹 트리거] 신규 캐릭터 랭킹 진입
+    await this.leaderboardsService.syncAll(savedCharacter);
+
+    return savedCharacter;
   }
 
   async findAll(userId: string): Promise<Character[]> {
@@ -83,6 +90,12 @@ export class CharactersService {
     if (!updatedCharacter) {
       throw new NotFoundException(`캐릭터 업데이트 실패.`);
     }
+
+    // [Redis 실시간 랭킹 트리거] 스탯(레벨, 골드 등) 업데이트 시 랭킹 동기화
+    // 추후 전투/육성 관련 로직(메서드)이 이 서비스나 별도 서비스에 추가될 때,
+    // 그 로직의 마지막에 this.leaderboardsService.syncAll() 만 호출해주면 됩니다.
+    await this.leaderboardsService.syncAll(updatedCharacter);
+
     return updatedCharacter;
   }
 

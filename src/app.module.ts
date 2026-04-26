@@ -10,6 +10,8 @@ import { ItemsModule } from './items/items.module';
 import { UserItemsModule } from './user-items/user-items.module';
 import { NoticesModule } from './notices/notices.module';
 import { AdminModule } from './admin/admin.module';
+import { RedisModule } from './redis/redis.module';
+import { LeaderboardsModule } from './leaderboards/leaderboards.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { AdminModule } from './admin/admin.module';
     UserItemsModule,
     NoticesModule,
     AdminModule,
+    RedisModule,
+    LeaderboardsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

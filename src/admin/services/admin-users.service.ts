@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User, UserDocument } from '../../schemas/users.schema';
@@ -6,12 +6,14 @@ import { Character, CharacterDocument } from '../../schemas/character.schema';
 import { SearchUsersDto } from '../dto/search-users.dto';
 import { UpdateUserStatusDto } from '../dto/update-user-status.dto';
 import { UpdateCharacterStatDto } from '../dto/update-character-stat.dto';
+import { LeaderboardsService } from '../../leaderboards/leaderboards.service';
 
 @Injectable()
 export class AdminUsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Character.name) private characterModel: Model<CharacterDocument>,
+    private readonly leaderboardsService: LeaderboardsService,
   ) {}
 
   async searchUsers(query: SearchUsersDto) {
@@ -26,16 +28,15 @@ export class AdminUsersService {
     }
 
     const skip = (page - 1) * limit;
-    
     const [data, total] = await Promise.all([
-      this.userModel.find(filter).skip(skip).limit(Number(limit)).exec(),
+      this.userModel.find(filter).skip(skip).limit(limit).exec(),
       this.userModel.countDocuments(filter).exec(),
     ]);
 
     return {
       data,
       total,
-      page: Number(page),
+      page,
       totalPages: Math.ceil(total / limit),
     };
   }
@@ -47,7 +48,7 @@ export class AdminUsersService {
 
     const user = await this.userModel.findByIdAndUpdate(
       userId,
-      { status: updateDto.status },
+      { $set: { status: updateDto.status } },
       { new: true }
     ).exec();
 
@@ -55,7 +56,6 @@ export class AdminUsersService {
       throw new NotFoundException('User not found');
     }
 
-    // You could also log the 'reason' somewhere if an AuditLog schema exists
     return user;
   }
 
@@ -73,6 +73,9 @@ export class AdminUsersService {
     if (!character) {
       throw new NotFoundException('Character not found');
     }
+
+    // [Redis 실시간 랭킹 트리거] 어드민 강제 스탯 수정 시 랭킹 동기화
+    await this.leaderboardsService.syncAll(character);
 
     return character;
   }
